@@ -57,19 +57,19 @@ async def serve():
 
             # --- Extract strategy_item_id BEFORE parsing --- 
             strategy_item_id = ""
-            if "modules" in content_data and content_data["modules"]:
-                for module in content_data["modules"]:
-                    module_title = module.get("title", "")
-                    if module_title in {ModuleType.CHARACTER_STRATEGY.value, ModuleType.CHARACTER_STRATEGY_OLD.value}:
-                        if "components" in module and module["components"]:
-                            for component in module["components"]:
-                                if "content" in component and component["content"]:
-                                    item_id = extract_item_id(component["content"])
-                                    if item_id:
-                                        strategy_item_id = item_id
-                                        break # Found the ID, no need to check further components in this module
-                    if strategy_item_id: # Found the ID, no need to check further modules
-                        break
+            # Assuming 'modules' always exists based on user input
+            for module in content_data["modules"]:
+                module_title = module.get("title", "")
+                if module_title in {ModuleType.CHARACTER_STRATEGY.value, ModuleType.CHARACTER_STRATEGY_OLD.value}:
+                    # Assuming 'components' always exists within relevant modules based on user input
+                    for component in module["components"]:
+                        if "content" in component and component["content"]:
+                            item_id = extract_item_id(component["content"])
+                            if item_id:
+                                strategy_item_id = item_id
+                                break # Found the ID, no need to check further components in this module
+                if strategy_item_id: # Found the ID, no need to check further modules
+                    break
             print(f"Extracted strategy item ID: {strategy_item_id if strategy_item_id else 'Not found'}")
 
             # --- Parallel Processing --- 

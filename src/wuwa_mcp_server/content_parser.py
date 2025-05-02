@@ -13,7 +13,6 @@ class ContentParser:
     """
     A class for parsing content data from JSON and HTML formats into structured data.
     """
-
     def parse_main_content(self, content_data):
         """
         Parse the data of the content field, extracting content of specified modules.
@@ -22,45 +21,7 @@ class ContentParser:
         target_modules = {mod.value for mod in ModuleType}
 
         if "modules" in content_data and content_data["modules"]:
-            for module in content_data["modules"]:
-                module_title = module.get("title", "")
-                if module_title not in target_modules:
-                    continue
-
-                module_data = {"components": []}
-                if "components" in module and module["components"]:
-                    for component in module["components"]:
-                        component_data = {}
-                        component_title = component.get("title", "")
-
-                        if module_title == ModuleType.CHARACTER_DATA.value:
-                            # Special handling for CHARACTER_DATA: only process the first component
-                            if module["components"] and component == module["components"][0]:
-                                role_data = component.get("role", {}) # Get the role object, default to empty dict if not found
-                                component_data["title"] = role_data.get("title", "") # Keep module title for component data title
-                                component_data["subtitle"] = role_data.get("subtitle", "")
-                                component_data["info_texts"] = [
-                                    info.get("text", "") for info in role_data.get("info", []) if info.get("text")
-                                ]
-                                module_data["components"].append({"title": role_data.get("title", ""), "data": component_data})
-                            # Skip other components for CHARACTER_DATA
-                            continue # Move to the next component or finish if this was the last
-
-                        elif "tabs" in component and component["tabs"]:
-                            component_data["tabs"] = [
-                                {
-                                    "title": tab.get("title", ""),
-                                    "parsed_content": self._parse_html_content(tab.get("content", "")),
-                                }
-                                for tab in component["tabs"]
-                            ]
-                            module_data["components"].append({"title": component_title, "data": component_data})
-                        elif "content" in component and component["content"]:
-                            component_data["parsed_content"] = self._parse_html_content(component["content"])
-                            module_data["components"].append({"title": component_title, "data": component_data})
-
-                if module_data["components"]:
-                    result["modules"][module_title] = module_data
+            result["modules"] = self._parse_modules(content_data["modules"], target_modules)
 
         return result
 
@@ -71,33 +32,65 @@ class ContentParser:
         result = {"title": content_data.get("title", ""), "modules": {}}
 
         if "modules" in content_data and content_data["modules"]:
-            for module in content_data["modules"]:
-                module_title = module.get("title", "Unnamed Module")
-                module_data = {"components": []}
-
-                if "components" in module and module["components"]:
-                    for component in module["components"]:
-                        component_data = {}
-                        component_title = component.get("title", "Unnamed Component")
-
-                        if "tabs" in component and component["tabs"]:
-                            component_data["tabs"] = [
-                                {
-                                    "title": tab.get("title", "Unnamed Tab"),
-                                    "parsed_content": self._parse_html_content(tab.get("content", "")),
-                                }
-                                for tab in component["tabs"]
-                            ]
-                            module_data["components"].append({"title": component_title, "data": component_data})
-
-                        elif "content" in component and component["content"]:
-                            component_data["parsed_content"] = self._parse_html_content(component["content"])
-                            module_data["components"].append({"title": component_title, "data": component_data})
-
-                if module_data["components"]:
-                    result["modules"][module_title] = module_data
+            result["modules"] = self._parse_modules(content_data["modules"])
 
         return result
+
+    def _parse_component(self, component):
+        """Helper method to parse a single component."""
+        component_data = {}
+        component_title = component.get("title", "Unnamed Component")
+
+        if "tabs" in component and component["tabs"]:
+            component_data["tabs"] = [
+                {
+                    "title": tab.get("title", "Unnamed Tab"),
+                    "parsed_content": self._parse_html_content(tab.get("content", "")),
+                }
+                for tab in component["tabs"]
+            ]
+        elif "content" in component and component["content"]:
+            component_data["parsed_content"] = self._parse_html_content(component["content"])
+
+        return {"title": component_title, "data": component_data} if component_data else None
+
+    def _parse_modules(self, modules_data, target_modules=None):
+        """Helper method to parse modules and their components."""
+        parsed_modules = {}
+        for module in modules_data:
+            module_title = module.get("title", "Unnamed Module")
+            if target_modules and module_title not in target_modules:
+                continue
+
+            module_data = {"components": []}
+            if "components" in module and module["components"]:
+                # Special handling for CHARACTER_DATA in parse_main_content context
+                if target_modules and module_title == ModuleType.CHARACTER_DATA.value:
+                    if module["components"]:
+                        first_component = module["components"][0]
+                        role_data = first_component.get("role", {})
+                        component_data = {
+                            "title": role_data.get("title", ""),
+                            "subtitle": role_data.get("subtitle", ""),
+                            "info_texts": [
+                                info.get("text", "") for info in role_data.get("info", []) if info.get("text")
+                            ]
+                        }
+                        module_data["components"].append({"title": role_data.get("title", ""), "data": component_data})
+                    # Skip other components for CHARACTER_DATA
+                    if module_data["components"]:
+                         parsed_modules[module_title] = module_data
+                    continue # Move to the next module
+
+                # General component parsing for other modules or parse_strategy_content
+                for component in module["components"]:
+                    parsed_component = self._parse_component(component)
+                    if parsed_component:
+                        module_data["components"].append(parsed_component)
+
+            if module_data["components"]:
+                parsed_modules[module_title] = module_data
+        return parsed_modules
 
     def _convert_tag_to_markdown(self, tag):
         """
@@ -119,11 +112,11 @@ class ContentParser:
             content = "".join(self._convert_tag_to_markdown(child) for child in tag.children).strip()
             if content:
                 markdown_parts.append(f"*{content}*")
-        elif tag.name == "img":
-            alt = tag.get("alt", "")
-            src = tag.get("src", "").strip().strip("`").strip()
-            if src:
-                markdown_parts.append(f"![{alt}]({src})")
+        # elif tag.name == "img":
+        #     alt = tag.get("alt", "")
+        #     src = tag.get("src", "").strip().strip("`").strip()
+        #     if src:
+        #         markdown_parts.append(f"![{alt}]({src})")
         elif tag.name == "hr":
             markdown_parts.append("---\n\n")
         elif tag.name == "br":
@@ -156,6 +149,7 @@ class ContentParser:
             content = "".join(self._convert_tag_to_markdown(child) for child in tag.children)
             markdown_parts.append(content)
         else:
+            # Fallback for unknown tags: process children
             content = "".join(self._convert_tag_to_markdown(child) for child in tag.children)
             markdown_parts.append(content)
 
@@ -178,9 +172,12 @@ class ContentParser:
 
         for row in rows[1:]:
             data_cells = row.find_all("td")
+            # Ensure the number of data cells matches the number of header cells
             if len(data_cells) == len(header_cells):
                 row_texts = [" ".join(cell.get_text(strip=True).split()) for cell in data_cells]
                 markdown += "| " + " | ".join(row_texts) + " |\n"
+            # Handle rows with colspan or rowspan if necessary, or simply skip malformed rows
+            # For simplicity, this example skips rows that don't match the header count
 
         return markdown
 
@@ -194,7 +191,8 @@ class ContentParser:
         try:
             soup = BeautifulSoup(html_content, "html.parser")
             markdown_output = "".join(self._convert_tag_to_markdown(child) for child in soup.children)
-            tables = []
+            # Table extraction logic can be added here if needed, currently tables are converted to Markdown
+            tables = [] # Placeholder for potential future table data extraction
         except Exception as e:
             print(f"Error parsing HTML with BeautifulSoup: {e}")
             return {"markdown_content": f"<error>Failed to parse HTML: {str(e)}</error>", "tables": []}
