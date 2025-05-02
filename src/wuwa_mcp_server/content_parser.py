@@ -2,13 +2,13 @@ import re
 from enum import Enum
 from bs4 import BeautifulSoup, NavigableString, Tag
 
-# 定义枚举类来维护模块类型
+# Define an enumeration class to maintain module types
 class ModuleType(Enum):
     CHARACTER_DEVELOPMENT = "角色养成"
     CHARACTER_STRATEGY = "角色攻略"
     CHARACTER_STRATEGY_OLD = "角色养成推荐"
 
-# 定义枚举类来维护角色养成中的子模块
+# Define an enumeration class to maintain sub-modules in character development
 class DevelopmentSubType(Enum):
     SKILL_INTRO = "技能介绍"
     SKILL_DATA = "技能数据"
@@ -16,11 +16,11 @@ class DevelopmentSubType(Enum):
 
 def parse_content_data(content_data):
     """
-    解析 content 字段的数据，提取指定模块的内容和角色攻略的 item ID
-    参数:
-        content_data (dict): content 字段的 JSON 数据
-    返回:
-        dict: 解析后的结构化数据
+    Parse the data of the content field, extracting content of specified modules and the item ID of character strategy.
+    Args:
+        content_data (dict): JSON data of the content field.
+    Returns:
+        dict: Parsed structured data.
     """
     result = {
         "title": content_data.get("title", ""),
@@ -28,30 +28,30 @@ def parse_content_data(content_data):
         "strategy_item_id": ""
     }
     
-    # 需要处理的模块列表
+    # List of modules to be processed
     target_modules = {mod.value for mod in ModuleType}
     
-    # 处理 modules 列表，仅关注目标模块
+    # Process the modules list, focusing only on target modules
     if "modules" in content_data and content_data["modules"]:
         for module in content_data["modules"]:
             module_title = module.get("title", "")
             if module_title not in target_modules:
-                continue  # 跳过无关模块
+                continue  # Skip irrelevant modules
             
             module_data = {
                 "components": []
             }
             
-            # 处理 components 列表
+            # Process the components list
             if "components" in module and module["components"]:
                 for component in module["components"]:
                     component_data = {}
                     
-                    # 对于“角色养成”，只处理特定子模块
+                    # For "Character Development", process only specific sub-modules
                     if module_title == ModuleType.CHARACTER_DEVELOPMENT.value:
                         component_title = component.get("title", "")
                         
-                        # 检查是否有 tabs（如技能介绍），只取 tabs 内容
+                        # Check if there are tabs (e.g., skill introduction), only take tab content
                         if "tabs" in component and component["tabs"] and component_title == DevelopmentSubType.SKILL_INTRO.value:
                             component_data["tabs"] = []
                             for tab in component["tabs"]:
@@ -67,7 +67,7 @@ def parse_content_data(content_data):
                                 "data": component_data
                             })
                         
-                        # 检查是否有 content 字段，处理“技能数据”和“共鸣链”
+                        # Check if there is a content field, process "Skill Data" and "Resonance Chain"
                         elif "content" in component and component["content"] and component_title in {DevelopmentSubType.SKILL_DATA.value, DevelopmentSubType.RESONANCE_CHAIN.value}:
                             component_data["parsed_content"] = parse_html_content(component["content"])
                             module_data["components"].append({
@@ -75,7 +75,7 @@ def parse_content_data(content_data):
                                 "data": component_data
                             })
                     
-                    # 对于“角色攻略”，提取 item ID
+                    # For "Character Strategy", extract item ID
                     elif module_title == ModuleType.CHARACTER_STRATEGY.value or module_title == ModuleType.CHARACTER_STRATEGY_OLD.value:
                         if "content" in component and component["content"]:
                             component_data["parsed_content"] = parse_html_content(component["content"])
@@ -87,18 +87,18 @@ def parse_content_data(content_data):
                                 "data": component_data
                             })
             
-            if module_data["components"]:  # 只有当有有效组件时才添加到结果中
+            if module_data["components"]:  # Add to result only if there are valid components
                 result["modules"][module_title] = module_data
     
     return result
 
 def parse_html_content(html_content):
     """
-    解析 HTML 格式的内容，使用 readabilipy 和 markdownify 提取和转换内容
-    参数:
-        html_content (str): HTML 格式的字符串内容
-    返回:
-        dict: 解析后的结构化数据，包含 Markdown 格式内容和表格
+    Parse HTML formatted content, extracting and converting content using readabilipy and markdownify.
+    Args:
+        html_content (str): HTML formatted string content.
+    Returns:
+        dict: Parsed structured data, including Markdown formatted content and tables.
     """
     if not html_content:
         return {"markdown_content": "", "tables": []}
@@ -238,11 +238,11 @@ def _convert_table_to_markdown(table_tag):
 
 def parse_html_content(html_content):
     """
-    解析 HTML 格式的内容，使用 BeautifulSoup 直接转换为 Markdown
-    参数:
-        html_content (str): HTML 格式的字符串内容
-    返回:
-        dict: 解析后的结构化数据，包含 Markdown 格式内容和原始表格数据
+    Parse HTML formatted content, directly converting to Markdown using BeautifulSoup.
+    Args:
+        html_content (str): HTML formatted string content.
+    Returns:
+        dict: Parsed structured data, including Markdown formatted content and raw table data.
     """
     if not html_content:
         return {"markdown_content": "", "tables": []}
@@ -269,16 +269,16 @@ def parse_html_content(html_content):
 
 def extract_item_id(html_content):
     """
-    从 HTML 内容中提取角色攻略中的 item ID
-    参数:
-        html_content (str): HTML 格式的字符串内容
-    返回:
-        str: 提取的 item ID，如果没有则返回空字符串
+    Extract the item ID of character strategy from HTML content.
+    Args:
+        html_content (str): HTML formatted string content.
+    Returns:
+        str: Extracted item ID, or empty string if not found.
     """
     if not html_content:
         return ""
     
-    # 攻略ID
+    # Strategy ID pattern
     pattern = r"https://wiki\.kurobbs\.com/mc/item/(\d+)"
     match = re.search(pattern, html_content)
     if match:
