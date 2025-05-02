@@ -101,15 +101,40 @@ class KuroWikiApiClient:
         response_data = await self._post_request(endpoint, form_data)
 
         if response_data:
-            if response_data.get("code") == 200 and \
-               "data" in response_data and \
+            if "data" in response_data and \
                "results" in response_data["data"] and \
                "records" in response_data["data"]["results"]:
                 print("Character list request successful.")
                 return response_data["data"]["results"]["records"]
             else:
-                print("Character list response structure is not as expected.")
-                print(json.dumps(response_data, indent=2, ensure_ascii=False)[:500] + "...")
+                return None
+        else:
+            # Error already printed in _post_request
+            return None
+
+    async def fetch_artifacts_list(self) -> Optional[List[Dict[str, Any]]]:
+        """
+        Fetches the list of artifacts (声骸).
+        Returns:
+            A list of artifact records, or None if an error occurred.
+        """
+        endpoint = "/getPage"
+        form_data = {
+            "catalogueId": "1219",
+            "page": "1",
+            "limit": "1000"
+        }
+        print("Requesting artifacts list...") # Updated print message
+        response_data = await self._post_request(endpoint, form_data)
+
+        if response_data:
+            if "data" in response_data and \
+               "results" in response_data["data"] and \
+               "records" in response_data["data"]["results"]:
+                print("Artifacts list request successful.") # Updated print message
+                return response_data["data"]["results"]["records"]
+            else:
+                print(f"Error: Unexpected response structure for artifacts list: {response_data}")
                 return None
         else:
             # Error already printed in _post_request
@@ -131,8 +156,6 @@ class KuroWikiApiClient:
 
         if response_data:
              # Assuming the raw response is needed, as per original function's docstring
-             print("Entry detail request successful.")
-             # print(json.dumps(response_data, indent=2, ensure_ascii=False)[:500] + "...") # Optional: log part of the response
              return response_data
         else:
             # Error already printed in _post_request
