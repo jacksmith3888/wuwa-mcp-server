@@ -1,9 +1,9 @@
-import re
 from enum import Enum
 from bs4 import BeautifulSoup, NavigableString, Tag
 
 
 class ModuleType(Enum):
+    CHARACTER_DATA = "基础资料"
     CHARACTER_DEVELOPMENT = "角色养成"
     CHARACTER_STRATEGY = "角色攻略"
     CHARACTER_STRATEGY_OLD = "角色养成推荐"
@@ -16,9 +16,9 @@ class ContentParser:
 
     def parse_main_content(self, content_data):
         """
-        Parse the data of the content field, extracting content of specified modules and the item ID of character strategy.
+        Parse the data of the content field, extracting content of specified modules.
         """
-        result = {"title": content_data.get("title", ""), "modules": {}, "strategy_item_id": ""}
+        result = {"title": content_data.get("title", ""), "modules": {}}
         target_modules = {mod.value for mod in ModuleType}
 
         if "modules" in content_data and content_data["modules"]:
@@ -33,7 +33,20 @@ class ContentParser:
                         component_data = {}
                         component_title = component.get("title", "")
 
-                        if "tabs" in component and component["tabs"]:
+                        if module_title == ModuleType.CHARACTER_DATA.value:
+                            # Special handling for CHARACTER_DATA: only process the first component
+                            if module["components"] and component == module["components"][0]:
+                                role_data = component.get("role", {}) # Get the role object, default to empty dict if not found
+                                component_data["title"] = role_data.get("title", "") # Keep module title for component data title
+                                component_data["subtitle"] = role_data.get("subtitle", "")
+                                component_data["info_texts"] = [
+                                    info.get("text", "") for info in role_data.get("info", []) if info.get("text")
+                                ]
+                                module_data["components"].append({"title": role_data.get("title", ""), "data": component_data})
+                            # Skip other components for CHARACTER_DATA
+                            continue # Move to the next component or finish if this was the last
+
+                        elif "tabs" in component and component["tabs"]:
                             component_data["tabs"] = [
                                 {
                                     "title": tab.get("title", ""),
@@ -42,14 +55,6 @@ class ContentParser:
                                 for tab in component["tabs"]
                             ]
                             module_data["components"].append({"title": component_title, "data": component_data})
-
-                        elif module_title in {ModuleType.CHARACTER_STRATEGY.value, ModuleType.CHARACTER_STRATEGY_OLD.value}:
-                            if "content" in component and component["content"]:
-                                component_data["parsed_content"] = self._parse_html_content(component["content"])
-                                item_id = self._extract_item_id(component["content"])
-                                if item_id:
-                                    result["strategy_item_id"] = item_id
-                                module_data["components"].append({"title": module_title, "data": component_data})
                         elif "content" in component and component["content"]:
                             component_data["parsed_content"] = self._parse_html_content(component["content"])
                             module_data["components"].append({"title": component_title, "data": component_data})
@@ -195,15 +200,3 @@ class ContentParser:
             return {"markdown_content": f"<error>Failed to parse HTML: {str(e)}</error>", "tables": []}
 
         return {"markdown_content": markdown_output.strip(), "tables": tables}
-
-    @staticmethod
-    def _extract_item_id(html_content):
-        """
-        Extract the item ID of character strategy from HTML content.
-        """
-        if not html_content:
-            return ""
-
-        pattern = r"https://wiki\.kurobbs\.com/mc/item/(\d+)"
-        match = re.search(pattern, html_content)
-        return match.group(1) if match else ""

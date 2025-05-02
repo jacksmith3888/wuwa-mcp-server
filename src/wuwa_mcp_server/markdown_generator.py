@@ -30,9 +30,22 @@ def convert_to_markdown(parsed_data):
             
             markdown_lines.append(f"### {comp_title}")
             markdown_lines.append("")
+
+            # Handle CHARACTER_DATA specific structure
+            if "subtitle" in component["data"] and "info_texts" in component["data"]:
+                subtitle = component["data"].get("subtitle", "")
+                title = component["data"].get("title", "")
+                if subtitle:
+                    markdown_lines.append(f"- name: **{subtitle}**")
+                    markdown_lines.append("")
+                info_texts = component["data"].get("info_texts", [])
+                if info_texts:
+                    for text in info_texts:
+                        markdown_lines.append(f"- {text}")
+                    markdown_lines.append("")
             
             # Process tabs in skill introduction
-            if "tabs" in component["data"]:
+            elif "tabs" in component["data"]:
                 for tab in component["data"]["tabs"]:
                     tab_title = tab.get("title", "Unnamed Tab")
                     markdown_lines.append(f"#### {tab_title}")
