@@ -1,7 +1,7 @@
 import asyncio
 import json
 import os
-from .api_client import fetch_entry_detail
+from .api_client import fetch_entry_detail, fetch_character_list
 from .content_parser import parse_content_data
 from .markdown_generator import convert_to_markdown
 
@@ -9,10 +9,38 @@ async def serve():
     """
     主服务函数，负责获取数据、解析内容并生成 Markdown 文件（异步）
     """
-    print("开始获取数据...")
+    print("开始获取角色列表...")
     try:
+        # 获取角色列表
+        characters = await fetch_character_list()
+        if not characters:
+            print("错误：未能获取角色列表，返回为空。")
+            return
+        
+        print(f"获取到 {len(characters)} 个角色。")
+        character_name = input("请输入要查询的角色名称：")
+        
+        # 查找匹配的角色
+        selected_character = None
+        for char in characters:
+            if char.get('name', '').lower() == character_name.lower():
+                selected_character = char
+                break
+        
+        if not selected_character:
+            print(f"未找到名为 '{character_name}' 的角色。")
+            return
+        
+        entry_id = selected_character.get('content', {}).get('linkId')
+        if not entry_id:
+            print("错误：无法从选中角色中获取 entry_id。")
+            return
+        
+        print(f"找到角色 '{character_name}'，entry_id: {entry_id}")
+        print("开始获取角色数据...")
+        
         # 获取数据
-        raw_data = await fetch_entry_detail()
+        raw_data = await fetch_entry_detail(entry_id)
         if not raw_data:
             print("错误：未能获取数据，返回为空。")
             return

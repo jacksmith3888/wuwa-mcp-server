@@ -1,7 +1,58 @@
 import httpx
 import json
 
-async def fetch_entry_detail(entry_id="1309607355563974656"):
+async def fetch_character_list():
+    """
+    通过POST请求获取角色列表（异步）
+    返回:
+        list: 角色记录列表，如果出错则返回None
+    """
+    url = "https://api.kurobbs.com/wiki/core/catalogue/item/getPage"
+    
+    # 构造form-data格式的请求参数
+    form_data = {
+        "catalogueId": "1105",
+        "page": "1",
+        "limit": "1000"
+    }
+    
+    # 设置请求头，模拟浏览器请求
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Origin": "https://wiki.kurobbs.com",
+        "Referer": "https://wiki.kurobbs.com/",
+        "Source": "h5",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        # "Devcode": "9hQQnyAvFQuAATuTkJizXqKUEzI2mzMo",
+        "wiki_type": "9"
+    }
+    
+    try:
+        # 使用httpx发送异步POST请求
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, data=form_data, headers=headers)
+            
+            # 检查响应状态码
+            if response.status_code == 200:
+                data = response.json()
+                print("角色列表请求成功")
+                if data.get("code") == 200 and "data" in data and "results" in data["data"] and "records" in data["data"]["results"]:
+                    return data["data"]["results"]["records"]
+                else:
+                    print("角色列表数据结构不符合预期")
+                    print(json.dumps(data, indent=2, ensure_ascii=False)[:500] + "...")
+                    return None
+            else:
+                print(f"角色列表请求失败，状态码：{response.status_code}")
+                print(f"响应内容：{response.text}")
+                return None
+    except Exception as e:
+        print(f"角色列表请求过程中发生错误：{str(e)}")
+        return None
+
+async def fetch_entry_detail(entry_id):
     """
     通过POST请求获取指定entry的详细内容（异步）
     参数:
@@ -25,7 +76,7 @@ async def fetch_entry_detail(entry_id="1309607355563974656"):
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         "Accept": "application/json, text/plain, */*",
         "Accept-Encoding": "gzip, deflate, br, zstd",
-        "Devcode": "IH0A45wV9pzrSfIkkwbCJLKuTvmXhpVE",
+        # "Devcode": "9hQQnyAvFQuAATuTkJizXqKUEzI2mzMo",
         "wiki_type": "9"
     }
     
