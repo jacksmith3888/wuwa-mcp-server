@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 from .api_client import KuroWikiApiClient # Import the class
-from .content_parser import parse_content_data
+from .content_parser import ContentParser
 from .markdown_generator import convert_to_markdown
 
 async def serve():
@@ -42,41 +42,83 @@ async def serve():
             print(f"Found character '{character_name}', entry_id: {entry_id}")
             print("Starting to fetch character data...")
 
-            # Fetch data
-            raw_data = await client.fetch_entry_detail(entry_id) # Use client instance
-            if not raw_data:
-                print("Error: Failed to fetch data, returned empty.")
+            # Fetch character profile data
+            character_raw_data = await client.fetch_entry_detail(entry_id) # Use client instance
+            if not character_raw_data:
+                print("Error: Failed to fetch character data, returned empty.")
                 return # Exit serve function if fetch failed
 
-            if 'data' not in raw_data or not raw_data['data'] or 'content' not in raw_data['data']:
-                print("Error: Data structure does not match expectations, unable to find valid content field.")
-                print(f"Returned data: {json.dumps(raw_data, indent=2, ensure_ascii=False)[:500]}...")
+            if 'data' not in character_raw_data or not character_raw_data['data'] or 'content' not in character_raw_data['data']:
+                print("Error: Character data structure does not match expectations, unable to find valid content field.")
+                print(f"Returned character data: {json.dumps(character_raw_data, indent=2, ensure_ascii=False)[:500]}...")
                 return # Exit serve function if data structure is wrong
 
-            content_data = raw_data['data']['content']
-            print("Data fetched successfully, starting to parse content...")
+            content_data = character_raw_data['data']['content']
+            print("Character data fetched successfully, starting to parse content...")
 
-            # Parse content
-            parsed_data = parse_content_data(content_data)
-            print("\nParsed data:")
-            print(json.dumps(parsed_data, indent=2, ensure_ascii=False)[:2000] + "...")
-            print("\nExtracted character strategy item ID:", parsed_data.get("strategy_item_id", "Not found"))
+            # Parse main content using ContentParser
+            parser = ContentParser()
+            character_profile_data = parser.parse_main_content(content_data)
+            strategy_item_id = character_profile_data.get("strategy_item_id")
+            print("\nExtracted character strategy item ID:", strategy_item_id if strategy_item_id else "Not found")
 
-            # Convert to Markdown format
-            print("\nStarting to generate Markdown output...")
-            markdown_output = convert_to_markdown(parsed_data)
-            print("Markdown output (partial):")
-            print(markdown_output[:2000] + "...")
+            # --- Parallel Processing ---
+            tasks = []
+            
+            # Task 1: Generate markdown for the character profile content
+            character_markdown_task = asyncio.create_task(asyncio.to_thread(convert_to_markdown, character_profile_data))
+            tasks.append(character_markdown_task)
 
-            # Save Markdown to file
+            # Task 2: Fetch strategy details if ID exists
+            strategy_data_task = None
+            if strategy_item_id:
+                strategy_data_task = asyncio.create_task(client.fetch_entry_detail(strategy_item_id))
+                tasks.append(strategy_data_task)
+
+            # Wait for tasks to complete
+            await asyncio.gather(*tasks)
+            
+            # --- Check Strategy Data Immediately ---
+            strategy_raw_data = None
+            if strategy_data_task:
+                strategy_raw_data = strategy_data_task.result()
+                if not strategy_raw_data:
+                    print("Error: Failed to fetch strategy data, returned empty.")
+                    strategy_raw_data = None
+                elif 'data' not in strategy_raw_data or not strategy_raw_data['data'] or 'content' not in strategy_raw_data['data']:
+                    print("Error: Strategy data structure does not match expectations, unable to find valid content field.")
+                    print(f"Returned strategy data: {json.dumps(strategy_raw_data, indent=2, ensure_ascii=False)[:500]}...")
+                    strategy_raw_data = None
+            
+            # --- Combine Results ---
+            character_markdown = character_markdown_task.result()
+            strategy_markdown = ""
+
+            if strategy_raw_data:
+                print("Strategy details fetched successfully, parsing content...")
+                strategy_content_data = strategy_raw_data['data']['content']
+                parsed_strategy_data = parser.parse_strategy_content(strategy_content_data)
+                strategy_markdown = convert_to_markdown(parsed_strategy_data)
+                if strategy_markdown:
+                    print("Strategy content parsed successfully.")
+                else:
+                    print("Warning: Strategy content parsing resulted in empty markdown.")
+
+            # Combine markdown outputs
+            combined_markdown = character_markdown
+            if strategy_markdown:
+                combined_markdown += "\n\n---\n\n## Character Strategy Details\n\n" + strategy_markdown
+            
+            # Save final Markdown to file
             output_dir = "output"
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
 
-            title = parsed_data.get('title', 'character').replace("/", "_").replace("\\", "_")
+            # Use the title from the character profile data
+            title = character_profile_data.get('title', 'character').replace("/", "_").replace("\\", "_") 
             output_file = os.path.join(output_dir, f"{title}.md")
             with open(output_file, "w", encoding="utf-8") as f:
-                f.write(markdown_output)
+                f.write(combined_markdown) # Write the combined output
             print(f"\nMarkdown file saved as {output_file}")
 
         except Exception as e:
