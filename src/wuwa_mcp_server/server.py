@@ -5,9 +5,9 @@ from typing import List, Dict, Any, Optional
 
 from mcp.server.fastmcp import FastMCP
 
-from api_client import KuroWikiApiClient
-from content_parser import ContentParser, ModuleType
-from markdown_generator import convert_to_markdown
+from .api_client import KuroWikiApiClient
+from .content_parser import ContentParser, ModuleType
+from .markdown_generator import convert_to_markdown
 
 # Initialize FastMCP
 mcp = FastMCP("wuwa-mcp-server")
