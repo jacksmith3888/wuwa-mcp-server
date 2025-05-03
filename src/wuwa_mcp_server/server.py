@@ -28,7 +28,7 @@ async def get_character_info(character_name: str) -> str:
     """Fetch character details and strategy from Kuro Wiki and return as Markdown.
 
     Args:
-        character_name: The name of the character to query.
+        character_name: The name of the character to query in Chinese.
 
     Returns:
         A markdown string containing the character's profile and strategy information,
@@ -146,5 +146,8 @@ async def get_character_info(character_name: str) -> str:
             # traceback.print_exc() # Uncomment for detailed debugging
             return f"Error: An unexpected error occurred while processing '{character_name}'. Check server logs."
 
-if __name__ == "__main__":
+def main():
     mcp.run(transport='stdio')
+
+if __name__ == "__main__":
+    main()

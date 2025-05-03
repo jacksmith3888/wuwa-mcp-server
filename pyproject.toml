@@ -10,3 +10,10 @@ dependencies = [
     "httpx>=0.28.1",
     "mcp[cli]>=1.7.0",
 ]
+
+[project.scripts]
+wuwa-mcp-server = "wuwa_mcp_server.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
