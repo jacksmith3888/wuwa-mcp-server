@@ -1,6 +1,5 @@
 [project]
 name = "wuwa-mcp-server"
-version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -17,3 +16,6 @@ wuwa-mcp-server = "wuwa_mcp_server.server:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/wuwa_mcp_server/__init__.py"
