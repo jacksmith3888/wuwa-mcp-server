@@ -65,15 +65,10 @@ async def get_character_info(character_name: str) -> str:
             if not character_raw_data:
                 return f"Error: Failed to fetch profile data for entry_id {entry_id}."
 
-            if 'data' not in character_raw_data or not character_raw_data.get('data') or 'content' not in character_raw_data['data']:
-                return f"Error: Character profile data structure invalid for entry_id {entry_id}."
-            content_data = character_raw_data['data']['content']
-            print("Character profile data fetched successfully.")
-
             # 4. Extract strategy_item_id (before parallel parsing)
             strategy_item_id = ""
-            if "modules" in content_data:
-                for module in content_data["modules"]:
+            if "modules" in character_raw_data:
+                for module in character_raw_data["modules"]:
                     module_title = module.get("title", "")
                     if module_title in {ModuleType.CHARACTER_STRATEGY.value, ModuleType.CHARACTER_STRATEGY_OLD.value}:
                         if "components" in module:
@@ -92,7 +87,7 @@ async def get_character_info(character_name: str) -> str:
             tasks = []
 
             # Task 1: Parse main content
-            character_profile_task = asyncio.create_task(asyncio.to_thread(parser.parse_main_content, content_data))
+            character_profile_task = asyncio.create_task(asyncio.to_thread(parser.parse_main_content, character_raw_data))
             tasks.append(character_profile_task)
 
             # Task 2: Fetch strategy details if ID exists
@@ -114,9 +109,6 @@ async def get_character_info(character_name: str) -> str:
                 if not strategy_raw_data:
                     print(f"Warning: Failed to fetch strategy data for item_id {strategy_item_id}.")
                     strategy_raw_data = None
-                elif 'data' not in strategy_raw_data or not strategy_raw_data.get('data') or 'content' not in strategy_raw_data['data']:
-                    print(f"Warning: Strategy data structure invalid for item_id {strategy_item_id}.")
-                    strategy_raw_data = None
 
             # 7. Generate Markdown
             character_markdown = convert_to_markdown(character_profile_data)
@@ -124,8 +116,7 @@ async def get_character_info(character_name: str) -> str:
 
             if strategy_raw_data:
                 print("Parsing strategy content...")
-                strategy_content_data = strategy_raw_data['data']['content']
-                parsed_strategy_data = parser.parse_strategy_content(strategy_content_data)
+                parsed_strategy_data = parser.parse_strategy_content(strategy_raw_data)
                 strategy_markdown = convert_to_markdown(parsed_strategy_data)
                 if strategy_markdown:
                     print("Strategy content parsed successfully.")
@@ -135,7 +126,7 @@ async def get_character_info(character_name: str) -> str:
             # Combine markdown outputs
             combined_markdown = character_markdown
             if strategy_markdown:
-                combined_markdown += "\n\n---\n\n## Character Strategy Details\n\n" + strategy_markdown
+                combined_markdown += strategy_markdown
 
             print(f"Successfully generated markdown for {character_name}.")
             return combined_markdown
@@ -151,3 +142,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# async def main():
+#     await get_character_list()
+#     await get_character_info("1309607355563974656")
+
+# if __name__ == "__main__":
+#     asyncio.run(main())

@@ -21,6 +21,10 @@ class KuroWikiApiClient:
     An asynchronous client for interacting with the Kuro BBS Wiki API.
     """
     BASE_URL = "https://api.kurobbs.com/wiki/core/catalogue/item"
+    CHARACTER_CATALOGUE_ID = "1105" #角色
+    ARTIFACTS_CATALOGUE_ID = "1219" #声骸
+    DEFAULT_PAGE = "1"
+    DEFAULT_LIMIT = "1000"
 
     def __init__(self, headers: Optional[Dict[str, str]] = None):
         """
@@ -93,9 +97,9 @@ class KuroWikiApiClient:
         """
         endpoint = "/getPage"
         form_data = {
-            "catalogueId": "1105",
-            "page": "1",
-            "limit": "1000"
+            "catalogueId": self.CHARACTER_CATALOGUE_ID,
+            "page": self.DEFAULT_PAGE,
+            "limit": self.DEFAULT_LIMIT
         }
         print("Requesting character list...")
         response_data = await self._post_request(endpoint, form_data)
@@ -120,9 +124,9 @@ class KuroWikiApiClient:
         """
         endpoint = "/getPage"
         form_data = {
-            "catalogueId": "1219",
-            "page": "1",
-            "limit": "1000"
+            "catalogueId": self.ARTIFACTS_CATALOGUE_ID,
+            "page": self.DEFAULT_PAGE,
+            "limit": self.DEFAULT_LIMIT
         }
         print("Requesting artifacts list...") # Updated print message
         response_data = await self._post_request(endpoint, form_data)
@@ -155,8 +159,12 @@ class KuroWikiApiClient:
         response_data = await self._post_request(endpoint, form_data)
 
         if response_data:
-             # Assuming the raw response is needed, as per original function's docstring
-             return response_data
+            if "data" in response_data and \
+               "content" in response_data["data"]:
+                return response_data["data"]["content"]
+            else:
+                print(f"Error: Unexpected response structure for artifacts list: {response_data}")
+                return None
         else:
             # Error already printed in _post_request
             return None
