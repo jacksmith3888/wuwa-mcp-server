@@ -155,7 +155,6 @@ class KuroWikiApiClient:
         endpoint = "/getEntryDetail"
         form_data = {"id": entry_id}
         
-        print(f"Requesting entry detail for ID: {entry_id}...")
         response_data = await self._post_request(endpoint, form_data)
 
         if response_data:

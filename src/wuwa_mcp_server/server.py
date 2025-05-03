@@ -132,7 +132,7 @@ async def get_artifact_info(artifact_name: str) -> str:
 
 @mcp.tool()
 async def get_character_info(character_name: str) -> str:
-    """获取库街区上的角色详细信息并以 Markdown 格式返回。
+    """获取库街区上的角色详细信息包括角色技能，养成攻略等，并以 Markdown 格式返回。
 
     Args:
         character_name: 要查询的角色的中文名称。
@@ -172,7 +172,13 @@ async def get_character_info(character_name: str) -> str:
         strategy_data_task = None
         if strategy_item_id:
             print("Fetching strategy details...")
-            strategy_data_task = asyncio.create_task(KuroWikiApiClient().fetch_entry_detail(strategy_item_id))
+            # Define an async wrapper function to handle the client context
+            async def fetch_strategy_wrapper(item_id):
+                async with KuroWikiApiClient() as client:
+                    return await client.fetch_entry_detail(item_id)
+            
+            # Create the task using the wrapper
+            strategy_data_task = asyncio.create_task(fetch_strategy_wrapper(strategy_item_id))
             tasks.append(strategy_data_task)
 
         # Wait for tasks
