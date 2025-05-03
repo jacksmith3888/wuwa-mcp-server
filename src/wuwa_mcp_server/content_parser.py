@@ -13,12 +13,26 @@ class ContentParser:
     """
     A class for parsing content data from JSON and HTML formats into structured data.
     """
+    CHARACTER_PROFILE_MODULE_TITLE = "角色档案"
+
     def parse_main_content(self, content_data):
         """
         Parse the data of the content field, extracting content of specified modules.
         """
         result = {"title": content_data.get("title", ""), "modules": {}}
         target_modules = {mod.value for mod in ModuleType}
+
+        if "modules" in content_data and content_data["modules"]:
+            result["modules"] = self._parse_modules(content_data["modules"], target_modules)
+
+        return result
+
+    def parse_character_profile(self, content_data):
+        """
+        Parse the character profile data, extracting content of the '角色档案' module.
+        """
+        result = {"title": content_data.get("title", ""), "modules": {}}
+        target_modules = {self.CHARACTER_PROFILE_MODULE_TITLE}
 
         if "modules" in content_data and content_data["modules"]:
             result["modules"] = self._parse_modules(content_data["modules"], target_modules)
