@@ -24,6 +24,72 @@ def extract_item_id(html_content: Optional[str]) -> str:
     return match.group(1) if match else ""
 
 @mcp.tool()
+async def get_artifact_info(artifact_name: str) -> str:
+    """获取库街区上的声骸详细信息并以 Markdown 格式返回。
+
+    Args:
+        artifact_name: 要查询的声骸套装的中文名称。
+
+    Returns:
+        包含声骸信息的 Markdown 字符串，
+        或者在找不到声骸或获取数据失败时返回错误消息。
+    """
+    print(f"收到声骸请求: {artifact_name}")
+    async with KuroWikiApiClient() as client:
+        try:
+            # 1. 获取声骸列表
+            artifacts = await client.fetch_artifacts_list()
+            if not artifacts:
+                return "错误：获取声骸列表失败。"
+
+            # 2. 查找匹配的声骸
+            selected_artifact = None
+            # 匹配 name 字段
+            for artifact in artifacts:
+                if artifact.get('name', '').lower() == artifact_name.lower():
+                    selected_artifact = artifact
+                    break
+            if not selected_artifact:
+                return f"错误：未找到名为 '{artifact_name}' 的声骸。"
+
+            # 3. 获取 entry_id
+            entry_id = selected_artifact.get('content', {}).get('linkId')
+            if not entry_id:
+                return f"错误：无法获取声骸 '{artifact_name}' 的 entry_id。"
+
+            print(f"找到声骸 '{artifact_name}', entry_id: {entry_id}")
+
+            # 4. 获取声骸详细数据
+            print(f"正在获取声骸详细信息，entry_id: {entry_id}...")
+            artifact_raw_data = await client.fetch_entry_detail(entry_id)
+            if not artifact_raw_data:
+                return f"错误：获取 entry_id {entry_id} 的详细数据失败。"
+
+            # 5. 解析声骸内容
+            print("正在解析声骸内容...")
+            parser = ContentParser()
+            # 在线程中运行解析，避免阻塞事件循环
+            parsed_artifact_data = await asyncio.to_thread(parser.parse_strategy_content, artifact_raw_data)
+
+            # 6. 生成 Markdown
+            print("正在生成 Markdown...")
+            artifact_markdown = convert_to_markdown(parsed_artifact_data)
+
+            if not artifact_markdown:
+                 print(f"警告：为 {artifact_name} 生成 Markdown 时结果为空。")
+                 # 返回一个更友好的消息，而不是错误
+                 return f"成功获取 '{artifact_name}' 的数据，但解析后的内容无法生成有效的 Markdown。"
+
+            print(f"成功为 {artifact_name} 生成 Markdown。")
+            return artifact_markdown
+
+        except Exception as e:
+            print(f"处理 '{artifact_name}' 时发生错误: {str(e)}")
+            # import traceback
+            # traceback.print_exc() # 用于详细调试
+            return f"错误：处理 '{artifact_name}' 时发生意外错误。请检查服务器日志。"
+
+@mcp.tool()
 async def get_character_info(character_name: str) -> str:
     """Fetch character details and strategy from Kuro Wiki and return as Markdown.
 
