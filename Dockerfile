@@ -14,7 +14,12 @@ COPY . /app
 RUN pip install --upgrade pip \
   && pip install --no-cache-dir .
 
-# Expose port if needed (MCP uses stdio, so not required)
+# Expose port 8081 for HTTP transport
+EXPOSE 8081
+
+# Set default environment variable for HTTP transport
+ENV TRANSPORT=http
+ENV PORT=8081
 
 # Run the MCP server
 CMD ["python", "-m", "wuwa_mcp_server.server"]

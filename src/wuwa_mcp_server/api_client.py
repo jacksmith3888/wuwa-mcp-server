@@ -1,7 +1,8 @@
-import httpx
 import json
 from types import TracebackType
-from typing import Optional, Type, List, Dict, Any
+from typing import Any, Dict, List, Optional, Type
+
+import httpx
 
 # Define common headers as a constant
 COMMON_HEADERS = {
@@ -12,17 +13,19 @@ COMMON_HEADERS = {
     "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
     "Accept": "application/json, text/plain, */*",
     "Accept-Encoding": "gzip, deflate, br, zstd",
-    "wiki_type": "9"
+    "wiki_type": "9",
     # Removed "Devcode" as it might be specific or dynamic, add back if necessary
 }
+
 
 class KuroWikiApiClient:
     """
     An asynchronous client for interacting with the Kuro BBS Wiki API.
     """
+
     BASE_URL = "https://api.kurobbs.com/wiki/core/catalogue/item"
-    CHARACTER_CATALOGUE_ID = "1105" #角色
-    ARTIFACTS_CATALOGUE_ID = "1219" #声骸
+    CHARACTER_CATALOGUE_ID = "1105"  # 角色
+    ARTIFACTS_CATALOGUE_ID = "1219"  # 声骸
     DEFAULT_PAGE = "1"
     DEFAULT_LIMIT = "1000"
 
@@ -40,7 +43,9 @@ class KuroWikiApiClient:
 
     async def __aenter__(self) -> "KuroWikiApiClient":
         """Asynchronous context manager entry."""
-        self._client = httpx.AsyncClient(headers=self.headers, timeout=30.0) # Increased timeout
+        self._client = httpx.AsyncClient(
+            headers=self.headers, timeout=30.0
+        )  # Increased timeout
         return self
 
     async def __aexit__(
@@ -52,9 +57,11 @@ class KuroWikiApiClient:
         """Asynchronous context manager exit."""
         if self._client:
             await self._client.aclose()
-            self._client = None # Ensure client is None after closing
+            self._client = None  # Ensure client is None after closing
 
-    async def _post_request(self, endpoint: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def _post_request(
+        self, endpoint: str, data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """
         Internal helper to perform a POST request.
         Args:
@@ -64,7 +71,9 @@ class KuroWikiApiClient:
             The parsed JSON response dictionary, or None if an error occurred.
         """
         if not self._client:
-             raise RuntimeError("Client not initialized. Use 'async with KuroWikiApiClient():'")
+            raise RuntimeError(
+                "Client not initialized. Use 'async with KuroWikiApiClient():'"
+            )
 
         url = f"{self.BASE_URL}{endpoint}"
         try:
@@ -79,7 +88,9 @@ class KuroWikiApiClient:
                     print(f"Response text: {response.text[:500]}...")
                     return None
             else:
-                print(f"Request to {url} failed with status code: {response.status_code}")
+                print(
+                    f"Request to {url} failed with status code: {response.status_code}"
+                )
                 print(f"Response content: {response.text[:500]}...")
                 return None
         except httpx.RequestError as e:
@@ -99,15 +110,17 @@ class KuroWikiApiClient:
         form_data = {
             "catalogueId": self.CHARACTER_CATALOGUE_ID,
             "page": self.DEFAULT_PAGE,
-            "limit": self.DEFAULT_LIMIT
+            "limit": self.DEFAULT_LIMIT,
         }
         print("Requesting character list...")
         response_data = await self._post_request(endpoint, form_data)
 
         if response_data:
-            if "data" in response_data and \
-               "results" in response_data["data"] and \
-               "records" in response_data["data"]["results"]:
+            if (
+                "data" in response_data
+                and "results" in response_data["data"]
+                and "records" in response_data["data"]["results"]
+            ):
                 print("Character list request successful.")
                 return response_data["data"]["results"]["records"]
             else:
@@ -126,19 +139,23 @@ class KuroWikiApiClient:
         form_data = {
             "catalogueId": self.ARTIFACTS_CATALOGUE_ID,
             "page": self.DEFAULT_PAGE,
-            "limit": self.DEFAULT_LIMIT
+            "limit": self.DEFAULT_LIMIT,
         }
-        print("Requesting artifacts list...") # Updated print message
+        print("Requesting artifacts list...")  # Updated print message
         response_data = await self._post_request(endpoint, form_data)
 
         if response_data:
-            if "data" in response_data and \
-               "results" in response_data["data"] and \
-               "records" in response_data["data"]["results"]:
-                print("Artifacts list request successful.") # Updated print message
+            if (
+                "data" in response_data
+                and "results" in response_data["data"]
+                and "records" in response_data["data"]["results"]
+            ):
+                print("Artifacts list request successful.")  # Updated print message
                 return response_data["data"]["results"]["records"]
             else:
-                print(f"Error: Unexpected response structure for artifacts list: {response_data}")
+                print(
+                    f"Error: Unexpected response structure for artifacts list: {response_data}"
+                )
                 return None
         else:
             # Error already printed in _post_request
@@ -154,15 +171,16 @@ class KuroWikiApiClient:
         """
         endpoint = "/getEntryDetail"
         form_data = {"id": entry_id}
-        
+
         response_data = await self._post_request(endpoint, form_data)
 
         if response_data:
-            if "data" in response_data and \
-               "content" in response_data["data"]:
+            if "data" in response_data and "content" in response_data["data"]:
                 return response_data["data"]["content"]
             else:
-                print(f"Error: Unexpected response structure for artifacts list: {response_data}")
+                print(
+                    f"Error: Unexpected response structure for artifacts list: {response_data}"
+                )
                 return None
         else:
             # Error already printed in _post_request

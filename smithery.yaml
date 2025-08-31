@@ -1,12 +1,19 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 
 startCommand:
-  type: stdio
+  type: http
   configSchema:
     # JSON Schema defining the configuration options for the MCP.
     {}
   commandFunction:
-    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    # A JS function that produces the CLI command based on the given config to start the MCP on HTTP.
     |-
-    (config) => ({ command: 'python', args: ['-m', 'wuwa_mcp_server.server'] })
+    (config) => ({
+      command: 'python',
+      args: ['-m', 'wuwa_mcp_server.server'],
+      env: {
+        TRANSPORT: 'http',
+        SERVER_TOKEN: config.serverToken
+      }
+    })
   exampleConfig: {}

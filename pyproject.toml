@@ -8,7 +8,9 @@ dependencies = [
     "asyncio>=3.4.3",
     "beautifulsoup4>=4.13.4",
     "httpx>=0.28.1",
-    "mcp[cli]>=1.7.0",
+    "mcp[cli]>=1.8.0",
+    "uvicorn>=0.32.1",
+    "starlette>=0.41.3",
 ]
 
 [project.scripts]
