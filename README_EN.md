@@ -6,12 +6,14 @@ A Model Context Protocol (MCP) server for fetching character and echo informatio
 
 **🇺🇸 English Documentation | 📄 [中文文档](README.md)**
 
-## 🚀 Latest Updates (v1.1.0)
+## 🚀 Latest Updates (v1.1.0+)
 
 - ✅ **Streamable HTTP Transport Support**: Now supports Smithery's new HTTP transport protocol
 - 🔄 **Backward Compatible**: Supports both traditional STDIO and new HTTP transport modes
 - 🌐 **Cloud Deployment Ready**: Perfect for VPS, Google Cloud Run, AWS Lambda, and other cloud environments
 - 📦 **Dependency Updates**: Upgraded to MCP 1.13.1 with latest transport protocol support
+- 🛠️ **Smithery Configuration Fixed**: Fixed custom container deployment configuration
+- 🐳 **Docker Optimized**: Multi-stage build with uv for faster builds and smaller images
 
 ## Features
 
@@ -147,7 +149,7 @@ TRANSPORT=http uv run python -m wuwa_mcp_server.server
 docker build -t wuwa-mcp-server .
 
 # Run container (HTTP mode)
-docker run -p 8081:8081 wuwa-mcp-server
+docker run -p 8081:8000 wuwa-mcp-server
 
 # Run container (STDIO mode)
 docker run -e TRANSPORT=stdio wuwa-mcp-server

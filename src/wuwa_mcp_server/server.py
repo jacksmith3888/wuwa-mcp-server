@@ -3,6 +3,7 @@ import os
 import re
 from typing import Any, Dict, Optional
 
+import uvicorn
 from mcp.server.fastmcp import FastMCP
 
 from .api_client import KuroWikiApiClient
@@ -288,12 +289,18 @@ def main():
     if transport_mode == "http":
         print("Starting Streamable HTTP transport mode...")
 
-        # Port configuration (controlled by environment variable)
+        # Port and host configuration
         port = int(os.environ.get("PORT", 8081))
-        print(f"Server will start on port {port}")
+        host = os.environ.get("HOST", "0.0.0.0")
+        print(f"Server will start on {host}:{port}")
+
+        # Set environment variables that FastMCP/uvicorn might use
+        os.environ["PORT"] = str(port)
+        os.environ["HOST"] = host
+        os.environ["UVICORN_HOST"] = host
+        os.environ["UVICORN_PORT"] = str(port)
 
         # Start FastMCP with Streamable HTTP transport mode
-        # Port configuration is controlled by the PORT environment variable if needed
         mcp.run(transport="streamable-http")
     else:
         print("Starting STDIO transport mode...")

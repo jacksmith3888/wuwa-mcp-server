@@ -8,12 +8,14 @@
 
 **📄 [English Documentation](README_EN.md) | 🇨🇳 中文文档**
 
-## 🚀 最新更新 (v1.1.0)
+## 🚀 最新更新 (v1.1.0+)
 
 - ✅ **支持 Streamable HTTP 传输**：现已支持 Smithery 的新 HTTP 传输协议
 - 🔄 **向后兼容**：同时支持传统的 STDIO 和新的 HTTP 传输模式
 - 🌐 **云端部署就绪**：完美适配 VPS、Google Cloud Run、AWS Lambda 等云环境
 - 📦 **依赖更新**：升级到 MCP 1.13.1，包含最新的传输协议支持
+- 🛠️ **Smithery 配置修复**：修复了自定义容器部署配置
+- 🐳 **Docker 优化**：使用 uv 的多阶段构建，提升构建速度并减小镜像体积
 
 ## 功能特点
 
@@ -149,7 +151,7 @@ TRANSPORT=http uv run python -m wuwa_mcp_server.server
 docker build -t wuwa-mcp-server .
 
 # 运行容器（HTTP 模式）
-docker run -p 8081:8081 wuwa-mcp-server
+docker run -p 8081:8000 wuwa-mcp-server
 
 # 运行容器（STDIO 模式）
 docker run -e TRANSPORT=stdio wuwa-mcp-server

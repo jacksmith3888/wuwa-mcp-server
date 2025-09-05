@@ -48,8 +48,11 @@ python -m build
 # Build Docker image
 docker build -t wuwa-mcp-server .
 
-# Run Docker container
-docker run wuwa-mcp-server
+# Run Docker container (HTTP mode)
+docker run -p 8081:8000 wuwa-mcp-server
+
+# Run Docker container (STDIO mode) 
+docker run -e TRANSPORT=stdio wuwa-mcp-server
 ```
 
 ### Publishing
@@ -183,12 +186,14 @@ Add to `claude_desktop_config.json`:
 - **uv.lock**: Dependency lock file for reproducible builds
 - **.python-version**: Specifies Python 3.12 requirement
 - **smithery.yaml**: Smithery MCP registry configuration
-- **Dockerfile**: Multi-stage build for containerized deployment
+- **Dockerfile**: Multi-stage build with uv optimization for containerized deployment
 - **.github/workflows/python-publish.yml**: Automated PyPI publishing on release
 
 ## Development Notes
 
 - Project uses **uv** for package management, not pip
+- Multi-stage Docker build optimized with uv for faster builds and smaller images
+- Smithery deployment configured for custom container runtime with HTTP transport
 - No tests currently exist in the codebase
 - Error messages are in Chinese for user-facing responses
 - Debug prints are in English for development
@@ -196,3 +201,10 @@ Add to `claude_desktop_config.json`:
 - FastMCP handles the MCP protocol implementation
 - HTTP timeout set to 30 seconds for API calls
 - Data source: 库街区 (Kujiequ) API at `https://api.kurobbs.com/wiki/core/catalogue/item`
+
+## Recent Fixes (v1.1.0+)
+
+- **Smithery Configuration**: Fixed `smithery.yaml` for proper custom container deployment
+- **Docker Optimization**: Updated Dockerfile to use uv with multi-stage build for better performance
+- **Port Configuration**: Fixed HTTP server to bind to `0.0.0.0:8081` for container compatibility
+- **Transport Handling**: Improved environment variable handling for both STDIO and HTTP modes
