@@ -72,9 +72,7 @@ class ArtifactRepository(BaseRepository, ArtifactRepositoryProtocol):
         """Get all artifacts (alias for get_artifact_list)."""
         return await self.get_artifact_list()
 
-    def create_artifact_entity(
-        self, name: str, entry_id: str, detail_data: dict[str, Any] | None = None
-    ) -> Artifact:
+    def create_artifact_entity(self, name: str, entry_id: str, detail_data: dict[str, Any] | None = None) -> Artifact:
         """Create Artifact entity from data.
 
         Args:
