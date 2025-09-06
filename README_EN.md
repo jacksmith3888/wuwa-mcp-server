@@ -8,7 +8,7 @@ A Model Context Protocol (MCP) server for fetching character and echo informatio
 
 **🇺🇸 English Documentation | 📄 [中文文档](README.md)**
 
-## 🚀 Latest Updates (v2.0.0)
+## 🚀 Latest Updates (v2.0.1)
 
 - 🏗️ **Architecture Refactor**: Adopted Domain-Driven Design (DDD) with clear layered architecture
 - 🔧 **Code Quality**: Integrated ruff for code formatting and static analysis

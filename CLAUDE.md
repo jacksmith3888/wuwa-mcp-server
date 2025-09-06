@@ -235,7 +235,7 @@ Add to `claude_desktop_config.json`:
 - HTTP timeout set to 30 seconds for API calls
 - Data source: 库街区 (Kujiequ) API at `https://api.kurobbs.com/wiki/core/catalogue/item`
 
-## Recent Updates (v2.0.0)
+## Recent Updates (v2.0.1)
 
 - **Architecture Refactor**: Complete rewrite using Domain-Driven Design (DDD) with layered architecture
 - **Code Quality**: Added ruff for linting and formatting with comprehensive rule set
