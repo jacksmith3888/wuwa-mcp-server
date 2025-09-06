@@ -24,6 +24,7 @@ jobs:
       issues: write
       id-token: write
       actions: read # Required for Claude to read CI results on PRs
+    timeout-minutes: 10  # Prevent runaway jobs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,16 +37,19 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
+          # Configure Claude's behavior to optimize costs and control model
+          claude_args: |
+            --model claude-sonnet-4-0
+            --max-turns 5
+
           # Optional: Customize the trigger phrase (default: @claude)
           # trigger_phrase: "/claude"
 
           # Optional: Trigger when specific user is assigned to an issue
           # assignee_trigger: "claude-bot"
 
-          # Optional: Configure Claude's behavior with CLI arguments
+          # Optional: Additional CLI arguments
           # claude_args: |
-          #   --model claude-opus-4-1-20250805
-          #   --max-turns 10
           #   --allowedTools "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*)"
           #   --system-prompt "Follow our coding standards. Ensure all new code has tests. Use TypeScript for new files."
 
