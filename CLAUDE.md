@@ -14,6 +14,9 @@ This is a Model Context Protocol (MCP) server for the game "鸣潮" (Wuthering W
 # Install dependencies using uv
 uv sync
 
+# Install development dependencies (including ruff for linting)
+uv sync --extra dev
+
 # Install in development mode using uv
 uv pip install -e .
 
@@ -42,6 +45,19 @@ python -m pip install build
 python -m build
 ```
 
+### Code Quality
+
+```bash
+# Format all Python code
+uv run ruff format .
+
+# Check for code issues
+uv run ruff check .
+
+# Automatically fix fixable issues
+uv run ruff check --fix .
+```
+
 ### Docker
 
 ```bash
@@ -51,7 +67,7 @@ docker build -t wuwa-mcp-server .
 # Run Docker container (HTTP mode)
 docker run -p 8081:8000 wuwa-mcp-server
 
-# Run Docker container (STDIO mode) 
+# Run Docker container (STDIO mode)
 docker run -e TRANSPORT=stdio wuwa-mcp-server
 ```
 
@@ -62,34 +78,46 @@ docker run -e TRANSPORT=stdio wuwa-mcp-server
 
 ## Architecture Overview
 
+The project follows a **Domain-Driven Design (DDD)** architecture with clear separation of concerns:
+
 ### Core Components
 
 1. **Server (`server.py`)**
-
    - FastMCP-based MCP server with three main tools
-   - Handles async/await patterns for API calls
-   - Implements parallel processing for character data fetching
+   - Dependency Injection container for service management
+   - Handles both STDIO and HTTP transport modes
    - Main entry point: `main()` function
 
-2. **API Client (`api_client.py`)**
+2. **Core Layer (`core/`)**
+   - **Configuration**: Application settings and HTTP client configuration
+   - **Dependency Injection**: DIContainer for managing service dependencies
+   - **Interfaces**: Protocols defining contracts for repositories and services
+   - **Exceptions**: Custom exception hierarchy for error handling
+   - **Logging**: Structured logging configuration
 
-   - `KuroWikiApiClient`: Async HTTP client for Kuro BBS Wiki API
-   - Context manager pattern for proper resource management
-   - Fetches character lists, artifact lists, and detailed entry data
-   - Base URL: `https://api.kurobbs.com/wiki/core/catalogue/item`
-   - Character catalogue ID: `1105`, Artifacts catalogue ID: `1219`
+3. **Domain Layer (`domain/`)**
+   - **Entities**: Character, Artifact, and MarkdownDocument domain objects
+   - **Value Objects**: Strongly-typed identifiers and data structures
+   - Pure business logic with no external dependencies
 
-3. **Content Parser (`content_parser.py`)**
+4. **Infrastructure Layer (`infrastructure/`)**
+   - **API Client**: KuroAPIClient for Kuro BBS Wiki API communication
+   - **HTTP Client**: Low-level HTTP communication with retry logic
+   - **Repositories**: Data access implementations for characters and artifacts
 
-   - `ContentParser`: Converts JSON/HTML data to structured format
-   - Module types: `CHARACTER_DATA`, `CHARACTER_DEVELOPMENT`, `CHARACTER_STRATEGY`
-   - HTML-to-Markdown conversion with BeautifulSoup
-   - Special handling for different content types (profile vs strategy)
+5. **Services Layer (`services/`)**
+   - **Character Service**: Business logic for character data processing
+   - **Artifact Service**: Business logic for artifact data processing  
+   - **Markdown Service**: Converts processed data to optimized Markdown
 
-4. **Markdown Generator (`markdown_generator.py`)**
-   - `convert_to_markdown()`: Final step to generate LLM-optimized Markdown
-   - Handles deduplication and proper formatting
-   - Special formatting for character data, tables, and strategy links
+6. **Parsers (`parsers/`)**
+   - **Content Parser**: Converts JSON/HTML data to structured format
+   - **HTML Converter**: BeautifulSoup-based HTML to Markdown conversion
+   - **Strategy Pattern**: Different parsing strategies for various content types
+
+7. **Builders (`builders/`)**
+   - **Markdown Builder**: Builder pattern for flexible document construction
+   - **Markdown Formatter**: Handles tables, lists, and formatting
 
 ### Data Flow
 
@@ -192,6 +220,11 @@ Add to `claude_desktop_config.json`:
 ## Development Notes
 
 - Project uses **uv** for package management, not pip
+- **Code Quality**: Uses **ruff** for linting and formatting with Python 3.12+ modern syntax
+  - Line length: 120 characters
+  - Modern type annotations (dict/list instead of Dict/List)
+  - Import sorting with single-line imports
+  - Comprehensive rule set: pycodestyle, pyflakes, isort, naming, pyupgrade, bugbear, etc.
 - Multi-stage Docker build optimized with uv for faster builds and smaller images
 - Smithery deployment configured for custom container runtime with HTTP transport
 - No tests currently exist in the codebase
@@ -202,8 +235,13 @@ Add to `claude_desktop_config.json`:
 - HTTP timeout set to 30 seconds for API calls
 - Data source: 库街区 (Kujiequ) API at `https://api.kurobbs.com/wiki/core/catalogue/item`
 
-## Recent Fixes (v1.1.0+)
+## Recent Updates (v2.0.0)
 
+- **Architecture Refactor**: Complete rewrite using Domain-Driven Design (DDD) with layered architecture
+- **Code Quality**: Added ruff for linting and formatting with comprehensive rule set
+- **Modern Python**: Updated to use Python 3.12+ features and modern type annotations
+- **Dependency Injection**: Implemented DI container for better service management
+- **Legacy Cleanup**: Removed old implementation files and consolidated functionality
 - **Smithery Configuration**: Fixed `smithery.yaml` for proper custom container deployment
 - **Docker Optimization**: Updated Dockerfile to use uv with multi-stage build for better performance
 - **Port Configuration**: Fixed HTTP server to bind to `0.0.0.0:8081` for container compatibility

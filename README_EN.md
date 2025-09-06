@@ -6,13 +6,16 @@ A Model Context Protocol (MCP) server for fetching character and echo informatio
 
 **🇺🇸 English Documentation | 📄 [中文文档](README.md)**
 
-## 🚀 Latest Updates (v1.1.0+)
+## 🚀 Latest Updates (v2.0.0)
 
-- ✅ **Streamable HTTP Transport Support**: Now supports Smithery's new HTTP transport protocol
+- 🏗️ **Architecture Refactor**: Adopted Domain-Driven Design (DDD) with clear layered architecture
+- 🔧 **Code Quality**: Integrated ruff for code formatting and static analysis
+- 📝 **Modern Syntax**: Using Python 3.12+ modern type annotations (dict/list instead of Dict/List)
+- 🧹 **Code Cleanup**: Removed legacy code, unified code style and quality standards
+- ✅ **Streamable HTTP Transport Support**: Supports Smithery's new HTTP transport protocol
 - 🔄 **Backward Compatible**: Supports both traditional STDIO and new HTTP transport modes
 - 🌐 **Cloud Deployment Ready**: Perfect for VPS, Google Cloud Run, AWS Lambda, and other cloud environments
-- 📦 **Dependency Updates**: Upgraded to MCP 1.13.1 with latest transport protocol support
-- 🛠️ **Smithery Configuration Fixed**: Fixed custom container deployment configuration
+- 📦 **Dependency Injection**: Using DI container for service instance management
 - 🐳 **Docker Optimized**: Multi-stage build with uv for faster builds and smaller images
 
 ## Features
@@ -141,6 +144,38 @@ uv run python -m wuwa_mcp_server.server
 # HTTP mode
 TRANSPORT=http uv run python -m wuwa_mcp_server.server
 ```
+
+### Code Quality
+
+The project uses **ruff** for code formatting and static analysis to ensure code quality and consistency.
+
+#### Install Development Dependencies
+
+```bash
+uv sync --extra dev
+```
+
+#### Code Formatting and Linting
+
+```bash
+# Format all Python code
+uv run ruff format .
+
+# Check for code issues
+uv run ruff check .
+
+# Automatically fix fixable issues
+uv run ruff check --fix .
+```
+
+#### Ruff Configuration
+
+The project is configured with the following code quality rules:
+
+- **Line Length**: 120 characters
+- **Target Python Version**: 3.12
+- **Enabled Rules**: pycodestyle, pyflakes, isort, naming conventions, pyupgrade, bugbear, code simplification, etc.
+- **Import Sorting**: Forced single-line imports with project module priority
 
 ### Docker Deployment
 

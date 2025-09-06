@@ -13,6 +13,11 @@ dependencies = [
     "starlette>=0.41.3",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+]
+
 [project.scripts]
 wuwa-mcp-server = "wuwa_mcp_server.server:main"
 
@@ -25,3 +30,31 @@ path = "src/wuwa_mcp_server/__init__.py"
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "I",  # isort
+    "N",  # pep8-naming
+    "W",  # pycodestyle warnings
+    "UP", # pyupgrade
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "RUF", # Ruff-specific rules
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "N806",  # variable in function should be lowercase (conflicts with some APIs)
+]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+known-first-party = ["wuwa_mcp_server"]
