@@ -1,5 +1,7 @@
 # Wuthering Waves MCP Server
 
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/jacksmith3888-wuwa-mcp-server-badge.png)](https://mseep.ai/app/jacksmith3888-wuwa-mcp-server)
+
 [![smithery badge](https://smithery.ai/badge/@jacksmith3888/wuwa-mcp-server)](https://smithery.ai/server/@jacksmith3888/wuwa-mcp-server)
 
 A Model Context Protocol (MCP) server for fetching character and echo information from the Wuthering Waves game, returning results in Markdown format optimized for Large Language Model consumption.
