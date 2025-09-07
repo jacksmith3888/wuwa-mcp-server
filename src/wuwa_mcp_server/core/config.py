@@ -67,7 +67,7 @@ class ApplicationSettings:
     def __init__(self):
         # App info
         self.app_name: str = "WuWa MCP Server"
-        self.version: str = "2.0.0"
+        self.version: str = "2.0.1"
         self.debug: bool = os.getenv("DEBUG", "false").lower() == "true"
 
         # Sub-settings

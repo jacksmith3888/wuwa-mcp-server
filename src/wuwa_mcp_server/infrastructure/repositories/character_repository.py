@@ -73,9 +73,7 @@ class CharacterRepository(BaseRepository, CharacterRepositoryProtocol):
         async with self.api_client as client:
             return await client.fetch_character_list()
 
-    def create_character_entity(
-        self, name: str, entry_id: str, detail_data: dict[str, Any] | None = None
-    ) -> Character:
+    def create_character_entity(self, name: str, entry_id: str, detail_data: dict[str, Any] | None = None) -> Character:
         """Create Character entity from data.
 
         Args:
