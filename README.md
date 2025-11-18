@@ -4,7 +4,11 @@
 
 [![smithery badge](https://smithery.ai/badge/@jacksmith3888/wuwa-mcp-server)](https://smithery.ai/server/@jacksmith3888/wuwa-mcp-server)
 
-一个 Model Context Protocol (MCP) 服务器，用于获取《鸣潮》游戏的角色和声骸信息，并以 Markdown 格式返回，方便大型语言模型使用。
+一个 Model Context Protocol (MCP) 服务器,用于获取《鸣潮》游戏的角色和声骸信息,并以 Markdown 格式返回,方便大型语言模型使用。
+
+<a href="https://glama.ai/mcp/servers/@jacksmith3888/wuwa-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@jacksmith3888/wuwa-mcp-server/badge" alt="WuWa Server MCP server" />
+</a>
 
 **📄 [English Documentation](README_EN.md) | 🇨🇳 中文文档**
 
