@@ -2,7 +2,7 @@
 
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/jacksmith3888-wuwa-mcp-server-badge.png)](https://mseep.ai/app/jacksmith3888-wuwa-mcp-server)
 
-[![smithery badge](https://smithery.ai/badge/@jacksmith3888/wuwa-mcp-server)](https://smithery.ai/server/@jacksmith3888/wuwa-mcp-server)
+[![LightNow capabilities](https://lightnow.ai/badge/io.github.jacksmith3888/wuwa-mcp-server)](https://lightnow.ai/servers/io.github.jacksmith3888/wuwa-mcp-server)
 
 一个 Model Context Protocol (MCP) 服务器，用于获取《鸣潮》游戏的角色和声骸信息，并以 Markdown 格式返回，方便大型语言模型使用。
 
